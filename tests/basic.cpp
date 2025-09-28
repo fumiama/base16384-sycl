@@ -5,6 +5,8 @@
 #include <windows.h>
 #endif
 
+#include "errors.hpp"
+
 static const int N = 4;
 
 int main() {
@@ -29,23 +31,15 @@ int main() {
   int *data = sycl::malloc_shared<int>(N, q);
   for (int i = 0; i < N; i++) data[i] = i;
 
-  try {
-    q.single_task<class MyClass>([=]() {
+  auto errn = failed([&]() {
+    q.parallel_for(sycl::range<1>(1), [=](sycl::id<1>) {
        for (int i = 0; i < N; i++) {
          data[i] *= 2;
        }
      }).wait();
-  } catch (sycl::exception &e) {
-    // Do something to output or handle the exception
-    std::cout << "Caught sync SYCL exception: " << e.what() << "\n";
-    return 1;
-  } catch (std::exception &e) {
-    std::cout << "Caught std exception: " << e.what() << "\n";
-    return 2;
-  } catch (...) {
-    std::cout << "Caught unknown exception\n";
-    return 3;
-  }
+  });
+
+  if (errn) return errn;
 
   for (int i = 0; i < N; i++) std::cout << data[i] << std::endl;
 

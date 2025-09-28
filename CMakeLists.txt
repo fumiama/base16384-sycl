@@ -43,8 +43,18 @@ endif()
 
 find_package(IntelSYCL REQUIRED)
 
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+
 set(COMPILE_FLAGS "-fsycl -Wall ${WIN_FLAG}")
 set(LINK_FLAGS "-fsycl")
 
+add_subdirectory(libs)
+message(STATUS "Collected libs: ${B14LIBS}")
+
 enable_testing()
 add_subdirectory(tests)
+message(STATUS "Collected tests: ${B14TESTS}")
+
+foreach(TARGET_NAME ${B14TESTS})
+  target_link_libraries(${TARGET_NAME} ${B14LIBS})
+endforeach()
