@@ -41,12 +41,35 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -finput-charset=utf-8 -fexec-charset=utf-8")
 endif()
 
-find_package(IntelSYCL REQUIRED)
+# Release 模式性能优化选项
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
+if(WIN32)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2 /Ob2 /Oi /Ot /Oy")
+else()
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native -mtune=native -flto -ffast-math -funroll-loops")
+endif()
 
+# Debug 模式选项
+if(WIN32)
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Od /Zi")
+else()
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
+endif()
+
+find_package(IntelSYCL REQUIRED)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 set(COMPILE_FLAGS "-fsycl -Wall ${WIN_FLAG}")
 set(LINK_FLAGS "-fsycl")
+
+# Release 模式链接优化
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  if(WIN32)
+    set(LINK_FLAGS "${LINK_FLAGS} /LTCG /OPT:REF /OPT:ICF")
+  else()
+    set(LINK_FLAGS "${LINK_FLAGS} -flto -Wl,-O1 -Wl,--as-needed")
+  endif()
+endif()
 
 add_subdirectory(libs)
 message(STATUS "Collected libs: ${B14LIBS}")
@@ -54,7 +77,6 @@ message(STATUS "Collected libs: ${B14LIBS}")
 enable_testing()
 add_subdirectory(tests)
 message(STATUS "Collected tests: ${B14TESTS}")
-
 foreach(TARGET_NAME ${B14TESTS})
   target_link_libraries(${TARGET_NAME} ${B14LIBS})
 endforeach()

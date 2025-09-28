@@ -69,7 +69,8 @@
         "xmemory": "cpp",
         "xstring": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "chrono": "cpp"
     },
     "terminal.integrated.defaultProfile.windows": "Command Prompt with oneAPI",
     "terminal.integrated.defaultProfile.linux": "bash with oneAPI",
