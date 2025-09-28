@@ -39,7 +39,7 @@ Base16384-SYCL is an optimized implementation of the [Base16384 encoding algorit
 
 ### 1. Environment Setup
 
-> [!Tips] > **For VS Code Users**: If you're using Visual Studio Code, the environment variable setup commands will be executed automatically when you open a terminal. If this fails, it may be due to a non-standard installation path. Please modify the paths in `.vscode/settings.json` accordingly.
+> [!TIP] > **For VS Code Users**: If you're using Visual Studio Code, the environment variable setup commands will be executed automatically when you open a terminal. If this fails, it may be due to a non-standard installation path. Please modify the paths in `.vscode/settings.json` accordingly.
 
 **Windows:**
 
