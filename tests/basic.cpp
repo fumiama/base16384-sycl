@@ -1,15 +1,23 @@
-#include <chrono>
-#include <iostream>
-#include <sycl/sycl.hpp>
-#include <vector>
+#include <stdint.h>
 #ifdef _WIN32
 #include <windows.h>
+#undef min
+#undef max
 #endif
 
-#include "errors.hpp"
+#include <chrono>
+#include <iomanip>
+#include <iostream>
+#include <random>
+#include <ranges>
+#include <sycl/sycl.hpp>
+#include <vector>
 
-static const int N = 65536;
-static const int work_group_size = 64;
+#include "errors.hpp"
+#include "xeinfo.hpp"
+
+constexpr int iter_count = 65536;
+constexpr int N = 65536;
 
 int main() {
 #ifdef _WIN32
@@ -19,8 +27,9 @@ int main() {
 #endif
   sycl::queue q;
 
-  auto device = q.get_device();
-  std::cout << "执行设备: " << device.get_info<sycl::info::device::name>() << std::endl;
+  const sycl::device device;
+  const auto device_name = device.get_info<sycl::info::device::name>();
+  std::cout << "执行设备: " << device_name << std::endl;
   std::cout << "设备类型: ";
   if (device.is_cpu()) {
     std::cout << "CPU" << std::endl;
@@ -30,47 +39,105 @@ int main() {
     std::cout << "其他" << std::endl;
   }
 
+  int work_group_size = 64;
+  if (device.is_gpu() && device_name.starts_with("Intel")) {
+    try {
+      auto xeinfo = base16384::xeinfo(device);
+      work_group_size = xeinfo.work_group_size;
+      std::cout << "\n" << xeinfo.string() << "\n\n";
+    } catch (const sycl::exception& e) {
+      std::cout << "获取Intel GPU信息失败 (可能不是Intel设备): " << e.what() << std::endl;
+      std::cout << "使用默认工作组大小: " << work_group_size << "\n\n";
+    }
+  }
+
+  // Generate random initial data
+  std::random_device rd;
+  std::mt19937 gen{rd()};
+  std::uniform_int_distribution<int> dis{0, 255};
+
+  std::vector<uint8_t> initial_data(N);
+  for (auto& byte : initial_data) {
+    byte = static_cast<uint8_t>(dis(gen));
+  }
+
   // CPU baseline test
-  std::vector<int> cpu_data(N);
-  for (int i = 0; i < N; i++) cpu_data[i] = i;
+  auto cpu_data = initial_data;
 
   auto start_time = std::chrono::high_resolution_clock::now();
-  for (int i = 0; i < N; i++) cpu_data[i] *= 2;
+  for (int j = 0; j < iter_count; j++) {
+    for (auto& byte : cpu_data) {
+      // 复杂计算：多步数学运算组合
+      uint8_t temp = byte;
+      temp = (temp * temp) % 251;  // 使用质数避免快速收敛
+      temp = temp ^ (temp >> 2);   // 位运算
+      temp = (temp + 17) % 256;    // 加法和模运算
+      temp = temp * 3 % 256;       // 乘法
+      byte = temp ^ (temp << 1);   // 最终位运算
+    }
+  }
   auto end_time = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
 
-  std::cout << "CPU (" << duration.count() << " us):" << std::endl;
-  for (int i = 0; i < min(N, 64); i++) std::cout << " " << cpu_data[i];
+  std::cout << "CPU (" << std::fixed << std::setprecision(1) << duration.count() / 1000.0
+            << " ms):";
+  for (int i = 0; i < std::min(N, 64); i++) std::cout << " " << static_cast<int>(cpu_data[i]);
   std::cout << "..." << std::endl;
 
-  int *data = sycl::malloc_shared<int>(N, q);
-  for (int i = 0; i < N; i++) data[i] = i;
+  auto* data = sycl::malloc_shared<std::uint8_t>(N, q);
+  std::copy(initial_data.cbegin(), initial_data.cend(), data);
 
   // test basic parallel kernel
   start_time = std::chrono::high_resolution_clock::now();
-  auto errn = base16384_try_failed(
-      [&]() { q.parallel_for(sycl::range<1>(N), [=](sycl::id<1> i) { data[i] *= 2; }).wait(); });
-  end_time = std::chrono::high_resolution_clock::now();
-  duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-  if (errn) return errn;
-
-  std::cout << "GPU基本并行 (" << duration.count() << " us):" << std::endl;
-  for (int i = 0; i < min(N, 64); i++) std::cout << " " << data[i];
-  std::cout << "..." << std::endl;
-
-  start_time = std::chrono::high_resolution_clock::now();
-  errn = base16384_try_failed([&]() {
-    q.parallel_for(sycl::nd_range<1>(N, work_group_size), [=](sycl::nd_item<1> item) {
-       int i = item.get_global_id(0);
-       data[i] /= 2;
-     }).wait();
+  auto errn = base16384::errors::try_failed([&]() {
+    for (int j = 0; j < iter_count; j++) {
+      q.parallel_for(sycl::range<1>(N), [=](sycl::id<1> i) {
+        // 复杂计算：多步数学运算组合
+        uint8_t temp = data[i];
+        temp = (temp * temp) % 251;    // 使用质数避免快速收敛
+        temp = temp ^ (temp >> 2);     // 位运算
+        temp = (temp + 17) % 256;      // 加法和模运算
+        temp = temp * 3 % 256;         // 乘法
+        data[i] = temp ^ (temp << 1);  // 最终位运算
+      });
+    }
+    q.wait();
   });
   end_time = std::chrono::high_resolution_clock::now();
   duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
   if (errn) return errn;
 
-  std::cout << "GPU高级并行 (" << duration.count() << " us):" << std::endl;
-  for (int i = 0; i < min(N, 64); i++) std::cout << " " << data[i];
+  std::cout << "GPU 基本并行 (" << std::fixed << std::setprecision(1) << duration.count() / 1000.0
+            << " ms):";
+  for (int i = 0; i < std::min(N, 64); i++) std::cout << " " << static_cast<int>(data[i]);
+  std::cout << "..." << std::endl;
+
+  std::copy(initial_data.cbegin(), initial_data.cend(), data);
+
+  start_time = std::chrono::high_resolution_clock::now();
+  errn = base16384::errors::try_failed([&]() {
+    for (int j = 0; j < iter_count; j++) {
+      q.parallel_for(sycl::nd_range<1>(N, work_group_size),
+                     [=](sycl::nd_item<1> item) {  // sub-group size
+                       const auto i = item.get_global_id(0);
+                       // 复杂计算：多步数学运算组合
+                       uint8_t temp = data[i];
+                       temp = (temp * temp) % 251;    // 使用质数避免快速收敛
+                       temp = temp ^ (temp >> 2);     // 位运算
+                       temp = (temp + 17) % 256;      // 加法和模运算
+                       temp = temp * 3 % 256;         // 乘法
+                       data[i] = temp ^ (temp << 1);  // 最终位运算
+                     });
+    }
+    q.wait();
+  });
+  end_time = std::chrono::high_resolution_clock::now();
+  duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+  if (errn) return errn;
+
+  std::cout << "GPU 高级并行 (" << std::fixed << std::setprecision(1) << duration.count() / 1000.0
+            << " ms):";
+  for (int i = 0; i < std::min(N, 64); i++) std::cout << " " << static_cast<int>(data[i]);
   std::cout << "..." << std::endl;
 
   sycl::free(data, q);

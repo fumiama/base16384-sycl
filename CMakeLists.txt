@@ -64,11 +64,7 @@ set(LINK_FLAGS "-fsycl")
 
 # Release 模式链接优化
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  if(WIN32)
-    set(LINK_FLAGS "${LINK_FLAGS} /LTCG /OPT:REF /OPT:ICF")
-  else()
-    set(LINK_FLAGS "${LINK_FLAGS} -flto -Wl,-O1 -Wl,--as-needed")
-  endif()
+  set(LINK_FLAGS "${LINK_FLAGS} -flto -fuse-ld=lld -Wl,-O1 -Wl,--as-needed")
 endif()
 
 add_subdirectory(libs)
