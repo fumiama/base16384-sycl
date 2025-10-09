@@ -1,10 +1,9 @@
-#include <stdint.h>
-
+#include <iostream>
 #include <sycl/sycl.hpp>
 
 #include "test.hpp"
 
-SYCL_EXTERNAL uint8_t base16384::test::kernels_basic(uint8_t in) {
+SYCL_EXTERNAL std::uint8_t base16384::test::kernels_basic(uint8_t in) {
   in *= in;
   in %= 251;
   in ^= in >> 2;

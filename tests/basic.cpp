@@ -100,6 +100,17 @@ int main() {
   for (int i = 0; i < std::min(N, 64); i++) std::cout << " " << static_cast<int>(data[i]);
   std::cout << "..." << std::endl;
 
+  // Verify GPU basic parallel result
+  for (int i = 0; i < N; i++) {
+    if (data[i] != cpu_data[i]) {
+      std::cerr << "GPU 基本并行结果验证失败：位置 " << i << " 期望值 "
+                << static_cast<int>(cpu_data[i]) << " 实际值 " << static_cast<int>(data[i])
+                << std::endl;
+      sycl::free(data, q);
+      return -1;
+    }
+  }
+
   std::copy(initial_data.cbegin(), initial_data.cend(), data);
 
   start_time = std::chrono::high_resolution_clock::now();
@@ -121,6 +132,17 @@ int main() {
             << " ms):";
   for (int i = 0; i < std::min(N, 64); i++) std::cout << " " << static_cast<int>(data[i]);
   std::cout << "..." << std::endl;
+
+  // Verify GPU advanced parallel result
+  for (int i = 0; i < N; i++) {
+    if (data[i] != cpu_data[i]) {
+      std::cerr << "GPU 高级并行结果验证失败：位置 " << i << " 期望值 "
+                << static_cast<int>(cpu_data[i]) << " 实际值 " << static_cast<int>(data[i])
+                << std::endl;
+      sycl::free(data, q);
+      return -1;
+    }
+  }
 
   sycl::free(data, q);
 
