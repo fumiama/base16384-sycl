@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "errors.hpp"
+#include "test.hpp"
 #include "xeinfo.hpp"
 
 constexpr int iter_count = 65536;
@@ -67,13 +68,7 @@ int main() {
   auto start_time = std::chrono::high_resolution_clock::now();
   for (int j = 0; j < iter_count; j++) {
     for (auto& byte : cpu_data) {
-      // 复杂计算：多步数学运算组合
-      uint8_t temp = byte;
-      temp = (temp * temp) % 251;  // 使用质数避免快速收敛
-      temp = temp ^ (temp >> 2);   // 位运算
-      temp = (temp + 17) % 256;    // 加法和模运算
-      temp = temp * 3 % 256;       // 乘法
-      byte = temp ^ (temp << 1);   // 最终位运算
+      byte = base16384::test::kernels_basic(byte);
     }
   }
   auto end_time = std::chrono::high_resolution_clock::now();
@@ -91,15 +86,8 @@ int main() {
   start_time = std::chrono::high_resolution_clock::now();
   auto errn = base16384::errors::try_failed([&]() {
     for (int j = 0; j < iter_count; j++) {
-      q.parallel_for(sycl::range<1>(N), [=](sycl::id<1> i) {
-        // 复杂计算：多步数学运算组合
-        uint8_t temp = data[i];
-        temp = (temp * temp) % 251;    // 使用质数避免快速收敛
-        temp = temp ^ (temp >> 2);     // 位运算
-        temp = (temp + 17) % 256;      // 加法和模运算
-        temp = temp * 3 % 256;         // 乘法
-        data[i] = temp ^ (temp << 1);  // 最终位运算
-      });
+      q.parallel_for(sycl::range<1>(N),
+                     [=](sycl::id<1> i) { data[i] = base16384::test::kernels_basic(data[i]); });
     }
     q.wait();
   });
@@ -120,13 +108,7 @@ int main() {
       q.parallel_for(sycl::nd_range<1>(N, work_group_size),
                      [=](sycl::nd_item<1> item) {  // sub-group size
                        const auto i = item.get_global_id(0);
-                       // 复杂计算：多步数学运算组合
-                       uint8_t temp = data[i];
-                       temp = (temp * temp) % 251;    // 使用质数避免快速收敛
-                       temp = temp ^ (temp >> 2);     // 位运算
-                       temp = (temp + 17) % 256;      // 加法和模运算
-                       temp = temp * 3 % 256;         // 乘法
-                       data[i] = temp ^ (temp << 1);  // 最终位运算
+                       data[i] = base16384::test::kernels_basic(data[i]);
                      });
     }
     q.wait();

@@ -73,6 +73,7 @@ message(STATUS "Collected libs: ${B14LIBS}")
 enable_testing()
 add_subdirectory(tests)
 message(STATUS "Collected tests: ${B14TESTS}")
+
 foreach(TARGET_NAME ${B14TESTS})
   target_link_libraries(${TARGET_NAME} ${B14LIBS})
 endforeach()

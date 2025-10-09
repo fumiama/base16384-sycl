@@ -1,6 +1,9 @@
 #ifndef _XEINFO_HPP_
 #define _XEINFO_HPP_
 
+#include <stdint.h>
+
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -59,7 +62,7 @@ class xeinfo {
   const int num_subslices_per_slice;
   const int num_eus_per_subslice;
   const int num_threads_per_eu;
-  const int global_mem_size;
+  const uint64_t global_mem_size;
   const int local_mem_size;
   const int max_work_group_size;
   const std::vector<unsigned long long> sub_group_sizes;
@@ -84,8 +87,9 @@ class xeinfo {
     builder << "  每个 XeCore 的硬件线程数: " << num_thread_per_xecore << "\n";
     builder << "  每个向量引擎的硬件线程数: " << num_threads_per_eu << "\n";
     builder << "  硬件线程总数: " << total_hardware_threads << "\n";
-    builder << "  GPU 内存大小: " << global_mem_size << " 字节\n";
-    builder << "  每个工作组的共享本地内存: " << local_mem_size << " 字节\n";
+    builder << "  GPU 内存大小: " << global_mem_size << " B (" << std::fixed << std::setprecision(2)
+            << (double)global_mem_size / 1024 / 1024 / 1024 << " GB)\n";
+    builder << "  每个工作组的共享本地内存: " << local_mem_size << " B\n";
     builder << "  最大工作组大小: " << max_work_group_size << "\n";
     builder << "  支持的子组大小:";
     for (size_t i = 0; i < sub_group_sizes.size(); i++) builder << " " << sub_group_sizes[i];
