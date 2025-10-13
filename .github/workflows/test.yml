@@ -27,7 +27,7 @@ jobs:
           mkdir build
           cd build
           cmake -DCMAKE_BUILD_TYPE=Release -DBUILD=test ..
-          cmake --build . || ctest --output-on-failure
+          cmake --build . && ctest --output-on-failure
 
   test_windows:
     name: Run CMake Test on Windows 🧪
@@ -38,14 +38,22 @@ jobs:
 
       - name: Setup Build Tools
         run: |
+          # Verify Chocolatey is available
+          choco --version
+
+          # Install Visual Studio Build Tools and CMake
+          choco install cmake visualstudio2022buildtools visualstudio2022-workload-vctools -y
+
+          # Download and install Intel oneAPI
           Invoke-WebRequest -Uri "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/f5881e61-dcdc-40f1-9bd9-717081ac623c/intel-oneapi-base-toolkit-2025.2.1.46_offline.exe" -OutFile "install.exe"
           ./install.exe -s -a --silent --eula accept
 
       - name: Build and Run Tests
         shell: cmd
         run: |
-          "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+          call "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
           mkdir build
           cd build
-          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD=test ..
           cmake --build . && ctest --output-on-failure

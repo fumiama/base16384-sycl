@@ -65,7 +65,7 @@ class xeinfo {
   const uint64_t global_mem_size;
   const int local_mem_size;
   const int max_work_group_size;
-  const std::vector<unsigned long long> sub_group_sizes;
+  const std::vector<size_t> sub_group_sizes;
   const int num_thread_per_xecore;
   const int total_xecores;
   const int total_vector_engines;
