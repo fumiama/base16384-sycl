@@ -44,12 +44,31 @@ jobs:
           # Install Visual Studio Build Tools and CMake
           choco install cmake visualstudio2022buildtools visualstudio2022-workload-vctools -y
 
-          # Download and install Intel oneAPI
-          Invoke-WebRequest -Uri "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/f5881e61-dcdc-40f1-9bd9-717081ac623c/intel-oneapi-base-toolkit-2025.2.1.46_offline.exe" -OutFile "install.exe"
-          ./install.exe -s -a --silent --eula accept
+          # Download and install Intel oneAPI Base Toolkit using the web installer
+          $url = "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/d91caaa0-7306-46ea-a519-79a0423e1903/w_BaseKit_p_2024.2.1.101_offline.exe"
+          $installer = "oneapi_installer.exe"
 
-          # List installed Files
-          ls "C:\Program Files (x86)\Intel\oneAPI"
+          Write-Host "Downloading Intel oneAPI Base Toolkit..."
+          Invoke-WebRequest -Uri $url -OutFile $installer -UseBasicParsing
+
+          if (Test-Path $installer) {
+              Write-Host "Installer downloaded successfully"
+              Write-Host "Installing Intel oneAPI Base Toolkit..."
+              Start-Process -FilePath $installer -ArgumentList "--silent", "--eula", "accept", "--components", "intel.oneapi.win.dpcpp-compiler" -Wait
+              Write-Host "Installation completed"
+          } else {
+              Write-Error "Failed to download installer"
+              exit 1
+          }
+
+          # Verify installation
+          if (Test-Path "C:\Program Files (x86)\Intel\oneAPI") {
+              Write-Host "oneAPI installation verified"
+              Get-ChildItem "C:\Program Files (x86)\Intel\oneAPI" | Format-Table Name
+          } else {
+              Write-Error "oneAPI installation failed"
+              exit 1
+          }
 
       - name: Build and Run Tests
         shell: cmd

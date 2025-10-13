@@ -85,11 +85,11 @@ int main() {
   // test basic parallel kernel
   start_time = std::chrono::high_resolution_clock::now();
   auto errn = base16384::errors::try_failed([&]() {
-    for (int j = 0; j < iter_count; j++) {
-      q.parallel_for(sycl::range<1>(N),
-                     [=](sycl::id<1> i) { data[i] = base16384::test::kernels_basic(data[i]); });
-    }
-    q.wait();
+    q.parallel_for(sycl::range<1>(N), [=](sycl::id<1> i) {
+       for (int j = 0; j < iter_count; j++) {
+         data[i] = base16384::test::kernels_basic(data[i]);
+       }
+     }).wait();
   });
   end_time = std::chrono::high_resolution_clock::now();
   duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
@@ -115,14 +115,14 @@ int main() {
 
   start_time = std::chrono::high_resolution_clock::now();
   errn = base16384::errors::try_failed([&]() {
-    for (int j = 0; j < iter_count; j++) {
-      q.parallel_for(sycl::nd_range<1>(N, work_group_size),
-                     [=](sycl::nd_item<1> item) {  // sub-group size
-                       const auto i = item.get_global_id(0);
+    q.parallel_for(sycl::nd_range<1>(N, work_group_size),
+                   [=](sycl::nd_item<1> item) {  // sub-group size
+                     const auto i = item.get_global_id(0);
+                     for (int j = 0; j < iter_count; j++) {
                        data[i] = base16384::test::kernels_basic(data[i]);
-                     });
-    }
-    q.wait();
+                     }
+                   })
+        .wait();
   });
   end_time = std::chrono::high_resolution_clock::now();
   duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
