@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 jobs:
   test_ubuntu:
-    name: Run CMake Test on Ubuntu (oneAPI) 🧪
+    name: Run CMake Test on Ubuntu 🧪
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -23,13 +23,14 @@ jobs:
 
       - name: Build and Run Tests
         run: |
+          source /opt/intel/oneapi/setvars.sh
           mkdir build
           cd build
           cmake -DCMAKE_BUILD_TYPE=Release -DBUILD=test ..
           cmake --build . || ctest --output-on-failure
 
   test_windows:
-    name: Run CMake Test on Windows (MSVC) 🧪
+    name: Run CMake Test on Windows 🧪
     runs-on: windows-latest
     steps:
       - name: Checkout Code
@@ -41,7 +42,10 @@ jobs:
           ./install.exe -s -a --silent --eula accept
 
       - name: Build and Run Tests
+        shell: cmd
         run: |
+          "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
           mkdir build
+          cd build
           cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release ..
-          cmake --build .; if ($?) { ctest --output-on-failure }
+          cmake --build . && ctest --output-on-failure
