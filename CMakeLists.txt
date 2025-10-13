@@ -46,7 +46,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
 if(WIN32)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2 /Ob2 /Oi /Ot /Oy")
 else()
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native -mtune=native -flto -ffast-math -funroll-loops")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=native -mtune=native -ffast-math -funroll-loops")
 endif()
 
 # Debug 模式选项
@@ -64,7 +64,13 @@ set(LINK_FLAGS "-fsycl")
 
 # Release 模式链接优化
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  set(LINK_FLAGS "${LINK_FLAGS} -flto -fuse-ld=lld -Wl,-O1 -Wl,--as-needed")
+  if(WIN32)
+    # Windows 保持原有配置
+    set(LINK_FLAGS "${LINK_FLAGS} -flto -fuse-ld=lld -Wl,-O1 -Wl,--as-needed")
+  else()
+    # Linux 下移除 LTO 相关选项以避免链接问题
+    set(LINK_FLAGS "${LINK_FLAGS} -Wl,-O1 -Wl,--as-needed")
+  endif()
 endif()
 
 add_subdirectory(libs)
