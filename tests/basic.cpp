@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "errors.hpp"
-#include "test.hpp"
+#include "test/kernels.hpp"
 #include "xeinfo.hpp"
 
 constexpr int iter_count = 65536;

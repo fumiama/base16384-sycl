@@ -39,8 +39,7 @@ Base16384-SYCL is an optimized implementation of the [Base16384 encoding algorit
 
 ### 1. Environment Setup
 
-> [!Tip]
-> **For VS Code Users**: If you're using Visual Studio Code, the environment variable setup commands will be executed automatically when you open a terminal. If this fails, it may be due to a non-standard installation path. Please modify the paths in `.vscode/settings.json` accordingly.
+> [!Tip] > **For VS Code Users**: If you're using Visual Studio Code, the environment variable setup commands will be executed automatically when you open a terminal. If this fails, it may be due to a non-standard installation path. Please modify the paths in `.vscode/settings.json` accordingly.
 
 **Windows:**
 
@@ -71,9 +70,16 @@ cd build
 
 **Configure the build system:**
 
-```cmd
-cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release ..
-```
+> Add `-DBUILD=test` to enable testing.
+
+- Windows
+  ```cmd
+  cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+  ```
+- Unix-Like
+  ```sh
+  cmake -DCMAKE_BUILD_TYPE=Release ..
+  ```
 
 **Compile the project:**
 

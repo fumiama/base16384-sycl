@@ -5,6 +5,12 @@ set(LOCAL_B14LIBS "")
 foreach(CPP_FILE ${CPP_FILES})
   # name without .cpp
   get_filename_component(TARGET_NAME ${CPP_FILE} NAME_WE)
+  
+  # Skip test files if BUILD is not "test"
+  if(NOT BUILD STREQUAL "test" AND TARGET_NAME MATCHES "^test_")
+    continue()
+  endif()
+
   message(STATUS "Add CPP lib: ${TARGET_NAME}")
   add_library(${TARGET_NAME} STATIC ${CPP_FILE})
 
