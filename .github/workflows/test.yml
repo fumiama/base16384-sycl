@@ -48,11 +48,14 @@ jobs:
           Invoke-WebRequest -Uri "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/f5881e61-dcdc-40f1-9bd9-717081ac623c/intel-oneapi-base-toolkit-2025.2.1.46_offline.exe" -OutFile "install.exe"
           ./install.exe -s -a --silent --eula accept
 
+          # List installed Files
+          ls "C:\Program Files (x86)\Intel\oneAPI"
+
       - name: Build and Run Tests
         shell: cmd
         run: |
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
-          call "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
+          "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+          "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
           mkdir build
           cd build
           cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD=test ..

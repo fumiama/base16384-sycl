@@ -5,9 +5,9 @@
 
 SYCL_EXTERNAL std::uint8_t base16384::test::kernels_basic(uint8_t in) {
   in *= in;
-  in %= 251;
+  in %= (uint8_t)251;
   in ^= in >> 2;
-  in += 17;
-  in *= 3;
+  in += (uint8_t)17;
+  in *= (uint8_t)3;
   return in ^ (in << 1);
 }
