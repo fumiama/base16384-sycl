@@ -54,7 +54,7 @@ jobs:
           if (Test-Path $installer) {
               Write-Host "Installer downloaded successfully"
               Write-Host "Installing Intel oneAPI Base Toolkit..."
-              Start-Process -FilePath $installer -ArgumentList "--silent", "--eula", "accept", "--components", "intel.oneapi.win.dpcpp-compiler" -Wait
+              Start-Process -FilePath $installer -ArgumentList "--eula", "accept" -Wait
               Write-Host "Installation completed"
           } else {
               Write-Error "Failed to download installer"
