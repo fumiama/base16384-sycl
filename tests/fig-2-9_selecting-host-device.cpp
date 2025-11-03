@@ -22,5 +22,8 @@ int main() {
   }
 
   std::cout << "Device is CPU: OK" << std::endl;
+
+  std::cout << "Test Passed!!!" << std::endl;
+
   return 0;
 }

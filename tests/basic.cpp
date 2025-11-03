@@ -146,5 +146,7 @@ int main() {
 
   sycl::free(data, q);
 
+  std::cout << "Test Passed!!!" << std::endl;
+
   return 0;
 }
