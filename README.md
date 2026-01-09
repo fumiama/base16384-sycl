@@ -95,6 +95,63 @@ cmake --build .
 ctest
 ```
 
+### 4. Performance Analysis with Intel VTune
+
+Intel VTune Profiler is a powerful performance analysis tool that can help you identify bottlenecks and optimize the applications.
+
+#### Prerequisites
+
+- Intel VTune Profiler (included in Intel oneAPI Base Toolkit)
+- Compiled Base16384-SYCL application or tests with debug symbols (use `RelWithDebInfo` build type)
+
+#### Running VTune Analysis
+
+**1. Launch VTune GUI:**
+
+```bash
+vtune-gui
+```
+
+**2. Create a New Project:**
+
+- Click "New Project" in the welcome screen
+- Set project name and location
+- Configure the target application path
+
+**3. Configure Analysis Type:**
+
+Choose an analysis type based on your profiling goals:
+
+- **Hotspots Analysis**: Identify CPU-intensive functions
+- **GPU Offload Analysis**: Analyze GPU kernel performance and host-device data transfer
+- **Memory Consumption**: Track memory usage patterns
+- **Threading Analysis**: Detect threading issues and analyze parallelism
+
+**4. Run the Analysis:**
+
+- Click the "Start" button to begin profiling
+- VTune will execute your application and collect performance data
+
+**5. Analyze Results:**
+
+![VTune Analysis Results of basic test](./assets/vtune-b14-test-basic.png)
+
+**Key metrics to examine:**
+
+- **Kernel Execution Time**: Time spent in SYCL kernels
+- **Memory Transfer Overhead**: Host-to-device and device-to-host data transfer time
+- **CPU Utilization**: Host CPU usage during GPU operations
+- **GPU Utilization**: GPU compute unit occupancy
+
+#### Optimization Tips
+
+Based on VTune analysis, consider these optimization strategies:
+
+1. **Reduce Host-Device Transfer**: Minimize data copying between CPU and GPU
+2. **Increase Kernel Occupancy**: Optimize work-group sizes and global range
+3. **Use Shared Memory**: Leverage local memory for frequently accessed data
+4. **Batch Operations**: Process larger data chunks to amortize kernel launch overhead
+
 ## Build Configuration
 
 The project supports multiple build configurations:

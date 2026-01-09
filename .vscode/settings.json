@@ -82,7 +82,8 @@
     "terminal.integrated.profiles.windows": {
         "Command Prompt with oneAPI": {
             "path": "cmd.exe",
-            "args": ["/k", "${config:oneapi.root.windows}/setvars.bat", "&&", "powershell"]
+             // need to set VS2022INSTALLDIR envvar when WARNING: Visual Studio was not found in a standard install location
+            "args": ["/k", "${config:oneapi.root.windows}/setvars.bat", "intel64", "vs2022", "&&", "powershell"]
         }
     },
     "terminal.integrated.profiles.linux": {
