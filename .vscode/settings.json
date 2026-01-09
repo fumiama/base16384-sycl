@@ -103,5 +103,8 @@
     "C_Cpp.enhancedColorization": "enabled",
     "C_Cpp.suggestSnippets": true,
     "editor.formatOnSave": true,
-    "editor.formatOnType": true
+    "editor.formatOnType": true,
+    "[markdown]": {
+        "editor.formatOnSave": false
+    }
 }
